@@ -1,9 +1,11 @@
 # Acme Widget Co - Basket System
 require_relative 'product_catalog'
+require_relative 'delivery_calculator'
 
 class Basket
-  def initialize(catalog = ProductCatalog.new)
+  def initialize(catalog = ProductCatalog.new, delivery_calculator = DeliveryCalculator.new)
     @catalog = catalog
+    @delivery_calculator = delivery_calculator
     @items = []
   end
 
@@ -17,7 +19,15 @@ class Basket
     @items.dup
   end
 
-  def total
+  def subtotal
     @items.sum { |product_code| @catalog.price_for(product_code) }
+  end
+
+  def delivery_charge
+    @delivery_calculator.calculate(subtotal)
+  end
+
+  def total
+    subtotal + delivery_charge
   end
 end

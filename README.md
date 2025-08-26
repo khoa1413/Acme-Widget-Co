@@ -11,12 +11,15 @@ This shopping basket calculates order totals with a clean, extensible architectu
 ### ProductCatalog
 - **Responsibility**: Manages product data and pricing
 - **Interface**: `price_for(code)`, `has_product?(code)`, `product_codes`
-- **Extensible**: Easy to swap with different catalog implementations
+
+### DeliveryCalculator
+- **Responsibility**: Calculates delivery charges based on subtotal
+- **Interface**: `calculate(subtotal)`
+- **Rules**: Configurable delivery charge rules
 
 ### Basket
 - **Responsibility**: Manages shopping cart items and total calculation
-- **Dependencies**: Injected ProductCatalog for pricing
-- **Validation**: Rejects unknown product codes
+- **Dependencies**: Injected ProductCatalog and DeliveryCalculator
 
 ## Products
 
@@ -26,31 +29,34 @@ This shopping basket calculates order totals with a clean, extensible architectu
 | G01          | Green Widget | $24.95|
 | B01          | Blue Widget  | $7.95 |
 
+## Delivery Rules
+
+| Order Subtotal | Delivery Charge |
+|----------------|-----------------|
+| Under $50      | $4.95          |
+| $50 - $89.99   | $2.95          |
+| $90+           | Free           |
+
 ## Current Features
 
 ✅ Product catalog with pricing
 ✅ Basic basket functionality
 ✅ Input validation
-🚧 Delivery charges (coming next)
-🚧 Special offers (planned)
+✅ Delivery charge calculation
+🚧 Special offers (coming next)
 
 ## Usage
 
 ```ruby
 require_relative 'basket'
 
-# Use default catalog
 basket = Basket.new
 basket.add('R01')
 basket.add('G01')
-puts basket.total  # $57.90
 
-# Use custom catalog
-custom_catalog = ProductCatalog.new({
-  'CUSTOM1' => 10.00,
-  'CUSTOM2' => 15.00
-})
-basket = Basket.new(custom_catalog)
+puts "Subtotal: $#{basket.subtotal}"
+puts "Delivery: $#{basket.delivery_charge}"
+puts "Total: $#{basket.total}"
 ```
 
 ## Testing
@@ -61,5 +67,5 @@ ruby test_basket.rb
 
 ## Development Status
 
-**Current Commit**: Add product catalog with dependency injection
-**Next Commit**: Add delivery charge calculation
+**Current Commit**: Add delivery charge calculation
+**Next Commit**: Add special offers system
