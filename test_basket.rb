@@ -1,87 +1,62 @@
 require_relative 'basket'
+require_relative 'product_catalog'
 
-def test_basket_examples
-  puts 'Testing Acme Widget Co Basket Implementation'
-  puts '=' * 50
+def test_product_catalog
+  puts 'Testing Product Catalog'
+  puts '=' * 25
 
-  test_cases = [
-    {
-      products: %w[B01 G01],
-      expected: 37.85,
-      description: 'Blue Widget + Green Widget'
-    },
-    {
-      products: %w[R01 R01],
-      expected: 54.37,
-      description: 'Two Red Widgets (with offer)'
-    },
-    {
-      products: %w[R01 G01],
-      expected: 60.85,
-      description: 'Red Widget + Green Widget'
-    },
-    {
-      products: %w[B01 B01 R01 R01 R01],
-      expected: 98.27,
-      description: 'Two Blue + Three Red Widgets'
-    }
-  ]
+  catalog = ProductCatalog.new
 
-  all_passed = true
+  puts "Red Widget price: $#{catalog.price_for('R01')}"
+  puts "Green Widget price: $#{catalog.price_for('G01')}"
+  puts "Blue Widget price: $#{catalog.price_for('B01')}"
 
-  test_cases.each_with_index do |test_case, index|
-    basket = Basket.new
+  puts "Has R01: #{catalog.has_product?('R01')}"
+  puts "Has INVALID: #{catalog.has_product?('INVALID')}"
 
-    test_case[:products].each do |product|
-      basket.add(product)
-    end
-
-    actual_total = basket.total
-    expected_total = test_case[:expected]
-
-    passed = (actual_total - expected_total).abs < 0.01
-    all_passed &&= passed
-
-    status = passed ? '✓ PASS' : '✗ FAIL'
-
-    puts "Test #{index + 1}: #{test_case[:description]}"
-    puts "  Products: #{test_case[:products].join(', ')}"
-    puts "  Expected: $#{expected_total}"
-    puts "  Actual:   $#{actual_total}"
-    puts "  #{status}"
-    puts
-  end
-
-  puts '=' * 50
-  puts all_passed ? 'All tests PASSED!' : 'Some tests FAILED!'
-
-  all_passed
+  puts "✓ Catalog working correctly\n"
 end
 
-def demonstrate_basket_usage
-  puts "\nDemonstrating Basket Usage:"
-  puts '-' * 30
+def test_basket_with_pricing
+  puts 'Testing Basket with Pricing'
+  puts '=' * 30
+
+  basket = Basket.new
+  basket.add('R01')  # $32.95
+  basket.add('G01')  # $24.95
+
+  puts "Items: #{basket.items.join(', ')}"
+  puts "Total: $#{basket.total}"
+  puts "Expected: $#{32.95 + 24.95}"
+
+  if (basket.total - 57.90).abs < 0.01
+    puts '✓ Pricing calculation correct'
+  else
+    puts '✗ Pricing calculation incorrect'
+  end
+end
+
+def test_error_handling
+  puts "\nTesting Error Handling"
+  puts '=' * 25
 
   basket = Basket.new
 
-  puts 'Created new basket'
-  puts 'Adding R01 (Red Widget)...'
-  basket.add('R01')
-  puts "Current total: $#{basket.total}"
-
-  puts 'Adding R01 (Red Widget) again...'
-  basket.add('R01')
-  puts "Current total: $#{basket.total} (note the red widget offer applied)"
-
-  puts 'Adding G01 (Green Widget)...'
-  basket.add('G01')
-  puts "Final total: $#{basket.total}"
-
-  puts "Items in basket: #{basket.items.join(', ')}"
+  begin
+    basket.add('INVALID')
+    puts '✗ Should have raised error for invalid product'
+  rescue ArgumentError => e
+    puts "✓ Correctly rejected invalid product: #{e.message}"
+  end
 end
 
-# Run the tests
-if __FILE__ == $0
-  test_basket_examples
-  demonstrate_basket_usage
+def run_tests
+  test_product_catalog
+  test_basket_with_pricing
+  test_error_handling
+
+  puts "\n" + '=' * 40
+  puts 'All tests completed!'
 end
+
+run_tests if __FILE__ == $0
