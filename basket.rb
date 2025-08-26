@@ -1,11 +1,14 @@
 # Acme Widget Co - Basket System
 require_relative 'product_catalog'
 require_relative 'delivery_calculator'
+require_relative 'offers_calculator'
 
 class Basket
-  def initialize(catalog = ProductCatalog.new, delivery_calculator = DeliveryCalculator.new)
+  def initialize(catalog = ProductCatalog.new, delivery_calculator = DeliveryCalculator.new,
+                 offers_calculator = OffersCalculator.new)
     @catalog = catalog
     @delivery_calculator = delivery_calculator
+    @offers_calculator = offers_calculator
     @items = []
   end
 
@@ -20,7 +23,7 @@ class Basket
   end
 
   def subtotal
-    @items.sum { |product_code| @catalog.price_for(product_code) }
+    @offers_calculator.calculate_discounted_subtotal(@items, @catalog)
   end
 
   def delivery_charge
@@ -28,6 +31,7 @@ class Basket
   end
 
   def total
-    subtotal + delivery_charge
+    total_cents = ((subtotal + delivery_charge) * 100).floor
+    total_cents / 100.0
   end
 end

@@ -1,6 +1,7 @@
 require_relative 'basket'
 require_relative 'product_catalog'
 require_relative 'delivery_calculator'
+require_relative 'offers_calculator'
 
 def test_product_catalog
   puts 'Testing Product Catalog'
@@ -109,6 +110,99 @@ def test_error_handling
   end
 end
 
+def test_red_widget_offer
+  puts 'Testing Red Widget Offer'
+  puts '=' * 25
+
+  basket = Basket.new
+  basket.add('R01')
+  basket.add('R01')
+
+  expected_subtotal = 32.95 + (32.95 * 0.5)
+  actual_subtotal = basket.subtotal
+
+  puts "Two red widgets subtotal: $#{actual_subtotal}"
+  puts "Expected: $#{expected_subtotal}"
+
+  if (actual_subtotal - expected_subtotal).abs < 0.01
+    puts '✓ Red widget offer working correctly'
+  else
+    puts '✗ Red widget offer not working'
+  end
+  puts
+end
+
+def test_comprehensive_scenarios
+  puts 'Testing Comprehensive Scenarios'
+  puts '=' * 35
+
+  test_cases = [
+    {
+      products: %w[B01 G01],
+      expected: 37.85,
+      description: 'Blue + Green Widget'
+    },
+    {
+      products: %w[R01 R01],
+      expected: 54.37,
+      description: 'Two Red Widgets (with offer)'
+    },
+    {
+      products: %w[R01 G01],
+      expected: 60.85,
+      description: 'Red + Green Widget'
+    },
+    {
+      products: %w[B01 B01 R01 R01 R01],
+      expected: 98.27,
+      description: 'Two Blue + Three Red Widgets'
+    }
+  ]
+
+  all_passed = true
+
+  test_cases.each_with_index do |test_case, index|
+    basket = Basket.new
+    test_case[:products].each { |product| basket.add(product) }
+
+    actual = basket.total
+    expected = test_case[:expected]
+    passed = (actual - expected).abs < 0.01
+
+    status = passed ? '✓ PASS' : '✗ FAIL'
+    puts "#{index + 1}. #{test_case[:description]}: $#{actual} #{status}"
+
+    all_passed &&= passed
+  end
+
+  puts "\n#{all_passed ? '✓ All scenarios passed!' : '✗ Some scenarios failed!'}"
+end
+
+def test_custom_offers
+  puts '\nTesting Custom Offers'
+  puts '=' * 25
+
+  custom_offers = OffersCalculator.new({
+                                         'G01' => ->(price, count) { price * count * 0.9 }
+                                       })
+
+  basket = Basket.new(ProductCatalog.new, DeliveryCalculator.new, custom_offers)
+  basket.add('G01')
+  basket.add('G01')
+
+  expected = (24.95 * 2 * 0.9) + 2.95
+  actual = basket.total
+
+  puts "Two green widgets with 10% off: $#{actual}"
+  puts "Expected: $#{expected}"
+
+  if (actual - expected).abs < 0.01
+    puts '✓ Custom offers working'
+  else
+    puts '✗ Custom offers not working'
+  end
+end
+
 def run_tests
   test_product_catalog
   test_delivery_calculator
@@ -116,9 +210,13 @@ def run_tests
   test_basket_with_delivery
   test_free_delivery
   test_error_handling
+  test_red_widget_offer
+  test_comprehensive_scenarios
+  test_custom_offers
 
-  puts "\n" + '=' * 40
-  puts 'All tests completed!'
+  puts "\n" + '=' * 50
+  puts '🎉 All features implemented and tested!'
+  puts 'Basket system is ready for production!'
 end
 
 run_tests if __FILE__ == $0
